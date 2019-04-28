@@ -1,13 +1,25 @@
 number _ => number {index: left.index, raw: left.raw}
+dsop _ => dsop {index: left.index, raw: left.raw}
 sop _ => sop {index: left.index, raw: left.raw}
 op _ => op {index: left.index, raw: left.raw}
 map _ => map {index: left.index, raw: left.raw}
+pipe _ => pipe {index: left.index, raw: left.raw}
+set _ => set {index: left.index, raw: left.raw}
 if _ => if {index: left.index, raw: left.raw}
 elif _ => elif {index: left.index, raw: left.raw}
 else _ => else {index: left.index, raw: left.raw}
 fn _ => fn {index: left.index, raw: left.raw}
 lbra _ => lbra {index: left.index, raw: left.raw}
 symbol _ => symbol {index: left.index, raw: left.raw}
+string _ => string {index: left.index, raw: left.raw}
+word _ => string {index: left.index, raw: `"${left.raw.slice(1)}"`}
+bool _ => bool {index: left.index, raw: left.raw}
+and _ => and {index: left.index, raw: left.raw}
+or _ => or {index: left.index, raw: left.raw}
+not _ => not {index: left.index, raw: left.raw}
+comparison _ => comparison {index: left.index, raw: left.raw}
+dot _ => dot {index: left.index, raw: left.raw}
+
 indent _|^ => indent {index: left.index, raw: left.raw}
 dedent _|^ => dedent {index: left.index, raw: left.raw}
 
@@ -31,7 +43,13 @@ op_start number|math => math {left: left.left, op: left.right.raw, right}
 symbol dot => property_access
 property_access symbol => symbol {left: left.left, right}
 
-map symbol => function_call {left: right}
+number|symbol comparison => cmpexpr_start
+cmpexpr_end comparison => cmpexpr_start
+cmpexpr_start number|symbol|cmpexpr_end => cmpexpr_end
+cmpexpr_start _ => cmpexpr_start {left: left.left, right: left.right}
+
+map symbol => function_call {left: right, isMap: true}
+pipe symbol => function_call {left: right}
 function_call|function_call_with_args symbol|number => function_call_with_args
 function_call|function_call_with_args nl|_n => call_end {left}
 
@@ -44,11 +62,11 @@ list_end _ => list_end
 math|number|symbol|list_end call_end => flow
 flow call_end => flow
 
-if symbol => if_start {left: right}
+if symbol|cmpexpr_end => if_start {left: right}
 if_start colon => if_end
 if_end block_end => if_statement
 
-elif symbol => elif_start {left: right}
+elif symbol|cmpexpr_end => elif_start {left: right}
 elif_start colon => elif_end
 elif_end block_end => elif_statement
 

@@ -7,7 +7,7 @@
 if a:
     b
     1 -> double
-elif b:
+elif b >= 10 > 2:
     c
 else:
     hehe
@@ -15,4 +15,4 @@ else:
 fn test a b:
     a -> b
 
-[1 2 3] -> test
+[1 2 3] -> * test

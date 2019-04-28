@@ -65,10 +65,10 @@ function bean(model, tokens) {
 // DEBUG
 const util = require("util");
 const fs = require("fs");
-const ClioLexer = require("../clio-lang/clio/lexer/lexer.js");
+const ClioLexer = require("./clio/lexer.js");
 
-const source = fs.readFileSync("test.clio", { encoding: "utf8" });
-const clioModel = fs.readFileSync("clio.beef", { encoding: "utf8" });
+const source = fs.readFileSync("./clio/test.clio", { encoding: "utf8" });
+const clioModel = fs.readFileSync("./clio/clio.beef", { encoding: "utf8" });
 
 const tokens = ClioLexer(source)[1];
 const model = beef(clioModel);
