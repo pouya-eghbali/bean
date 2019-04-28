@@ -1,0 +1,24 @@
+{
+  "name": "bean-parser",
+  "version": "1.0.0",
+  "description": "Bean Parser",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pouya-eghbali/bean.git"
+  },
+  "keywords": [
+    "parser",
+    "parser",
+    "generator"
+  ],
+  "author": "Pouya Eghbali",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/pouya-eghbali/bean/issues"
+  },
+  "homepage": "https://github.com/pouya-eghbali/bean#readme"
+}

@@ -1,0 +1,18 @@
+1 + 2 * 4 -> double
+          -> console.log arg 2
+
+1 + 2 * 4 -> double
+          -> console.log arg 2
+
+if a:
+    b
+    1 -> double
+elif b:
+    c
+else:
+    hehe
+
+fn test a b:
+    a -> b
+
+[1 2 3] -> test

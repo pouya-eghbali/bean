@@ -1,0 +1,82 @@
+number _ => number {index: left.index, raw: left.raw}
+sop _ => sop {index: left.index, raw: left.raw}
+op _ => op {index: left.index, raw: left.raw}
+map _ => map {index: left.index, raw: left.raw}
+if _ => if {index: left.index, raw: left.raw}
+elif _ => elif {index: left.index, raw: left.raw}
+else _ => else {index: left.index, raw: left.raw}
+fn _ => fn {index: left.index, raw: left.raw}
+lbra _ => lbra {index: left.index, raw: left.raw}
+symbol _ => symbol {index: left.index, raw: left.raw}
+indent _|^ => indent {index: left.index, raw: left.raw}
+dedent _|^ => dedent {index: left.index, raw: left.raw}
+
+_n ^ => nl
+
+math _ => math {left: left.left, right: left.right}
+call_start _ => call_start {left: left.left, right: left.right}
+function_call _ => function_call {left: left.left, right: left.right}
+function_call_with_args _ => function_call_with_args {left: left.left, right: left.right}
+flow _|^|_n => flow {left: left.left, right: left.right}
+if_end _n => if_end {left: left.left, right: left.right}
+elif_end _n => elif_end {left: left.left, right: left.right}
+else_end _n => else_end {left: left.left, right: left.right}
+
+number|math sop => sop_start
+sop_start number|math => math {left: left.left, op: left.right.raw, right}
+
+number|math op => op_start
+op_start number|math => math {left: left.left, op: left.right.raw, right}
+
+symbol dot => property_access
+property_access symbol => symbol {left: left.left, right}
+
+map symbol => function_call {left: right}
+function_call|function_call_with_args symbol|number => function_call_with_args
+function_call|function_call_with_args nl|_n => call_end {left}
+
+lbra number|symbol|math => list_start
+list_start number|symbol|math => list_start
+list_start _ => list_start
+list_start rbra => list_end
+list_end _ => list_end
+
+math|number|symbol|list_end call_end => flow
+flow call_end => flow
+
+if symbol => if_start {left: right}
+if_start colon => if_end
+if_end block_end => if_statement
+
+elif symbol => elif_start {left: right}
+elif_start colon => elif_end
+elif_end block_end => elif_statement
+
+else colon => else_end
+else_end block_end => else_statement
+
+if_statement _|nl|^|_n => if_statement
+elif_statement _|nl|^|_n => elif_statement
+else_statement _|nl|^|_n => else_statement
+
+if_statement elif_statement => if_elif_statement
+if_elif_statement elif_statement => if_elif_statement
+if_elif_statement else_statement => if_elif_else_statement
+if_statement else_statement => if_else_statement
+
+indent flow|symbol => block_start
+block_start flow|symbol => block_start
+block_start dedent => block_end
+block_start nl|_n|_ => block_start
+
+fn symbol => function_start
+function_start _ => function_start
+function_start symbol => function_start
+function_start colon => function_def
+function_def _n => function_def
+function_def block_end => function_end
+
+flow|function_end|if_else_statement|if_elif_statement eof => clio {program: left}
+if_elif_else_statement|if_statement eof => clio {program: left}
+flow|function_end|if_else_statement|if_elif_statement clio => clio {program: [left, right.program]}
+if_elif_else_statement|if_statement clio => clio {program: [left, right.program]}
