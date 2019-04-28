@@ -110,6 +110,28 @@ function lexer(string) {
       //return [false, tokens];
     }
   }
+  // post processing
+  tokens = tokens.filter(token => token.name != "_");
+  let isCall = false;
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (['map', 'pipe', 'set'].includes(token.name)) {
+      if (isCall) {
+        // insert call end token
+        tokens = [...tokens.slice(0, i), {name: '!', index: i+1}, ...tokens.slice(i++)];
+        isCall = false;
+      } else {
+        isCall = true;
+      }
+    } else if (token.name == '_n') {
+      if (isCall) {
+        // insert call end token
+        tokens = [...tokens.slice(0, i), { name: '!', index: i + 1 }, ...tokens.slice(i++)];
+        isCall = false;
+      }
+    }
+  }
+  tokens = tokens.filter(token => !["_n", "^"].includes(token.name));
   tokens.push({
     name: "eof",
     index: string.length,

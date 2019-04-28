@@ -1,39 +1,3 @@
-number _ => number {index: left.index, raw: left.raw}
-dsop _ => dsop {index: left.index, raw: left.raw}
-sop _ => sop {index: left.index, raw: left.raw}
-op _ => op {index: left.index, raw: left.raw}
-map _ => map {index: left.index, raw: left.raw}
-pipe _ => pipe {index: left.index, raw: left.raw}
-set _ => set {index: left.index, raw: left.raw}
-if _ => if {index: left.index, raw: left.raw}
-elif _ => elif {index: left.index, raw: left.raw}
-else _ => else {index: left.index, raw: left.raw}
-fn _ => fn {index: left.index, raw: left.raw}
-lbra _ => lbra {index: left.index, raw: left.raw}
-symbol _ => symbol {index: left.index, raw: left.raw}
-string _ => string {index: left.index, raw: left.raw}
-word _ => string {index: left.index, raw: `"${left.raw.slice(1)}"`}
-bool _ => bool {index: left.index, raw: left.raw}
-and _ => and {index: left.index, raw: left.raw}
-or _ => or {index: left.index, raw: left.raw}
-not _ => not {index: left.index, raw: left.raw}
-comparison _ => comparison {index: left.index, raw: left.raw}
-dot _ => dot {index: left.index, raw: left.raw}
-
-indent _|^ => indent {index: left.index, raw: left.raw}
-dedent _|^ => dedent {index: left.index, raw: left.raw}
-
-_n ^ => nl
-
-math _ => math {left: left.left, right: left.right}
-call_start _ => call_start {left: left.left, right: left.right}
-function_call _ => function_call {left: left.left, right: left.right}
-function_call_with_args _ => function_call_with_args {left: left.left, right: left.right}
-flow _|^|_n => flow {left: left.left, right: left.right}
-if_end _n => if_end {left: left.left, right: left.right}
-elif_end _n => elif_end {left: left.left, right: left.right}
-else_end _n => else_end {left: left.left, right: left.right}
-
 number|math sop => sop_start
 sop_start number|math => math {left: left.left, op: left.right.raw, right}
 
@@ -46,18 +10,15 @@ property_access symbol => symbol {left: left.left, right}
 number|symbol comparison => cmpexpr_start
 cmpexpr_end comparison => cmpexpr_start
 cmpexpr_start number|symbol|cmpexpr_end => cmpexpr_end
-cmpexpr_start _ => cmpexpr_start {left: left.left, right: left.right}
 
 map symbol => function_call {left: right, isMap: true}
 pipe symbol => function_call {left: right}
 function_call|function_call_with_args symbol|number => function_call_with_args
-function_call|function_call_with_args nl|_n => call_end {left}
+function_call|function_call_with_args ! => call_end {left: left}
 
 lbra number|symbol|math => list_start
 list_start number|symbol|math => list_start
-list_start _ => list_start
 list_start rbra => list_end
-list_end _ => list_end
 
 math|number|symbol|list_end call_end => flow
 flow call_end => flow
@@ -73,10 +34,6 @@ elif_end block_end => elif_statement
 else colon => else_end
 else_end block_end => else_statement
 
-if_statement _|nl|^|_n => if_statement
-elif_statement _|nl|^|_n => elif_statement
-else_statement _|nl|^|_n => else_statement
-
 if_statement elif_statement => if_elif_statement
 if_elif_statement elif_statement => if_elif_statement
 if_elif_statement else_statement => if_elif_else_statement
@@ -85,13 +42,10 @@ if_statement else_statement => if_else_statement
 indent flow|symbol => block_start
 block_start flow|symbol => block_start
 block_start dedent => block_end
-block_start nl|_n|_ => block_start
 
 fn symbol => function_start
-function_start _ => function_start
 function_start symbol => function_start
 function_start colon => function_def
-function_def _n => function_def
 function_def block_end => function_end
 
 flow|function_end|if_else_statement|if_elif_statement eof => clio {program: left}
