@@ -7,8 +7,7 @@ op_start number|math => math {left: left.left, op: left.right.raw, right}
 symbol dot => property_access
 property_access symbol => symbol {left: left.left, right}
 
-number|symbol comparison => cmpexpr_start
-cmpexpr_end comparison => cmpexpr_start
+cmpexpr_end|number|symbol comparison => cmpexpr_start
 cmpexpr_start number|symbol|cmpexpr_end => cmpexpr_end
 
 map symbol => function_call {left: right, isMap: true}
