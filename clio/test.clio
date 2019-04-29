@@ -16,3 +16,16 @@ fn test a b:
     a -> b
 
 [1 2 3] -> * test
+
+{
+     a b
+    #c d
+} => json
+
+a -> fn double b:
+    b * 2
+
+[1 2 3 4] -> filter (a: a > 2) -> n: n ^ 2 -> test @2
+
+a -> .b
+a -> .b.c

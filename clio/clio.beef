@@ -1,8 +1,11 @@
-number|math sop => sop_start
-sop_start number|math => math {left: left.left, op: left.right.raw, right}
+number|math|symbol dsop => dsop_start
+dsop_start number|math|symbol => math {left: left.left, op: left.right.raw, right}
 
-number|math op => op_start
-op_start number|math => math {left: left.left, op: left.right.raw, right}
+number|math|symbol sop => sop_start
+sop_start number|math|symbol => math {left: left.left, op: left.right.raw, right}
+
+number|math|symbol op => op_start
+op_start number|math|symbol => math {left: left.left, op: left.right.raw, right}
 
 symbol dot => property_access
 property_access symbol => symbol {left: left.left, right}
@@ -10,17 +13,17 @@ property_access symbol => symbol {left: left.left, right}
 cmpexpr_end|number|symbol comparison => cmpexpr_start
 cmpexpr_start number|symbol|cmpexpr_end => cmpexpr_end
 
-map symbol => function_call {left: right, isMap: true}
-pipe symbol => function_call {left: right}
-function_call|function_call_with_args symbol|number => function_call_with_args
-function_call|function_call_with_args ! => call_end {left: left}
+atsign number => at_ref
+
+set symbol => set_var
+set_var ! => set_var {left}
 
 lbra number|symbol|math => list_start
 list_start number|symbol|math => list_start
 list_start rbra => list_end
 
-math|number|symbol|list_end call_end => flow
-flow call_end => flow
+math|number|symbol|list_end|dictionary call_end|set_var|method_call_end => flow
+flow call_end|set_var => flow
 
 if symbol|cmpexpr_end => if_start {left: right}
 if_start colon => if_end
@@ -38,16 +41,39 @@ if_elif_statement elif_statement => if_elif_statement
 if_elif_statement else_statement => if_elif_else_statement
 if_statement else_statement => if_else_statement
 
-indent flow|symbol => block_start
-block_start flow|symbol => block_start
-block_start dedent => block_end
-
 fn symbol => function_start
 function_start symbol => function_start
 function_start colon => function_def
-function_def block_end => function_end
+function_def block_end|math|symbol|cmpexpr_end => function_end
+
+symbol colon => quick_function_start
+symbol quick_function_start => quick_function_start
+quick_function_start block_end => quick_function
+quick_function_start math|symbol|cmpexpr_end => one_line_quick_function
 
 flow|function_end|if_else_statement|if_elif_statement eof => clio {program: left}
 if_elif_else_statement|if_statement eof => clio {program: left}
 flow|function_end|if_else_statement|if_elif_statement clio => clio {program: [left, right.program]}
 if_elif_else_statement|if_statement clio => clio {program: [left, right.program]}
+
+lcbr|dict_val symbol|word|string|number => dict_key
+dict_key symbol|word|string|number => dict_val
+dict_val rcbr => dictionary
+
+lpar math|one_line_quick_function|list_end|dictionary|cmpexpr_end => wrapped_expr_start
+wrapped_expr_start rpar => wrapped_expr
+
+map symbol|function_end|quick_function|one_line_quick_function => function_call {left: right, isMap: true}
+pipe symbol|function_end|quick_function|one_line_quick_function => function_call {left: right}
+function_call|function_call_with_args at_ref|symbol|number|wrapped_expr|list_end => function_call_with_args
+function_call|function_call_with_args ! => call_end {left}
+
+map dot => method_call_start {left: right, isMap: true}
+pipe dot => method_call_start {left: right}
+method_call_start symbol|property_access => method_call
+method_call|method_call_with_args at_ref|symbol|number|wrapped_expr|list_end => method_call_with_args
+method_call|method_call_with_args ! => method_call_end {left}
+
+indent flow|symbol|math => block_start
+block_start flow|symbol|math => block_start
+block_start dedent => block_end

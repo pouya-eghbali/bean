@@ -119,14 +119,38 @@ function lexer(string) {
       if (isCall) {
         // insert call end token
         tokens = [...tokens.slice(0, i), {name: '!', index: i+1}, ...tokens.slice(i++)];
-        isCall = false;
+        //isCall = false;
       } else {
         isCall = true;
       }
     } else if (token.name == '_n') {
       if (isCall) {
-        // insert call end token
-        tokens = [...tokens.slice(0, i), { name: '!', index: i + 1 }, ...tokens.slice(i++)];
+        // check if it's a function:
+        if (tokens[i + 1] && tokens[i + 1].name == "indent") {
+          // find the matching dedent and insert call end there
+          let count = 0;
+          let j = 1;
+          while (true) {
+            let _token = tokens[i + j];
+            if (!_token) {
+              throw `Lexing error at ${i}`;
+            }
+            if (_token.name == "indent") {
+              count++;
+            } else if (_token.name == "dedent") {
+              count--;
+            }
+            if (count == 0) {
+              j++;
+              tokens = [...tokens.slice(0, i+j), { name: '!', index: i + j + 1 }, ...tokens.slice(i++ + j)];
+              break;
+            }
+            j++;
+          }
+        } else {
+          // insert call end token        
+          tokens = [...tokens.slice(0, i), { name: '!', index: i + 1 }, ...tokens.slice(i++)];
+        }
         isCall = false;
       }
     }
@@ -136,7 +160,7 @@ function lexer(string) {
     name: "eof",
     index: string.length,
     raw: "eof"
-  });
+  });  
   return [true, tokens];
 }
 
