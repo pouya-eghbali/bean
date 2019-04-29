@@ -13,7 +13,8 @@ property_access symbol => symbol {left: left.left, right}
 cmpexpr_end|number|symbol comparison => cmpexpr_start
 cmpexpr_start number|symbol|cmpexpr_end => cmpexpr_end
 
-atsign number => at_ref
+atsign no_space => at_ref_start
+at_ref_start number => at_ref
 
 set symbol => set_var
 set_var ! => set_var {left}

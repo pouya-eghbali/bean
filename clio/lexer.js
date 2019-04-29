@@ -111,6 +111,25 @@ function lexer(string) {
     }
   }
   // post processing
+  /*
+    Clio is white space sensitive at some places
+    and white space insensitive at other places
+    it's better to handle these at lexing time
+    because it makes parsing much simpler
+  */
+  for (let i = 0; i < tokens.length - 1; i++) {
+    const current = tokens[i];
+    const next = tokens[i + 1];
+    if (current.name == 'atsign') {
+      if (!["_", "_n", "dedent"].includes(next.name)) {
+        tokens = [...tokens.slice(0, i + 1), { name: 'no_space', index: i + 2 }, ...tokens.slice(i++ + 1)];
+      }
+    } else if (next.name == "lbra") {
+      if (!["_", "_n", "dedent"].includes(current.name)) {        
+        tokens = [...tokens.slice(0, i + 1), { name: 'no_space', index: i + 2 }, ...tokens.slice(i++ + 1)];
+      }
+    }
+  }
   tokens = tokens.filter(token => token.name != "_");
   let isCall = false;
   for (let i = 0; i < tokens.length; i++) {
