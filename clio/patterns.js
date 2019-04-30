@@ -10,7 +10,6 @@ const patterns = {
     elif: /^elif(?![a-zA-Z_-])/,
     else: /^else(?![a-zA-Z_-])/,
     bool: /^(true|false)(?![a-zA-Z_-])/,
-    transform: /^transform(?![a-zA-Z_-])/,
     and: /^and(?![a-zA-Z_-])/,
     or: /^or(?![a-zA-Z_-])/,
     not: /^not(?![a-zA-Z_-])/,

@@ -29,3 +29,30 @@ a -> fn double b:
 
 a -> .b
 a -> .b.c
+a -> a.b.c
+
+abc[1] -> * print
+
+import abc
+import a b c
+import a b c as alpha
+import a b c as alpha from alphabet
+import a b c from alphabet
+import a b c from ./alphabet
+import a b c from ../english/alphabet
+
+a and b and c
+a and b or c
+
+true and false
+false or true
+
+abc -> if b:
+    testing
+else:
+    heh
+
+[0:]
+[0:100]
+[0:100:2]
+[0::2]

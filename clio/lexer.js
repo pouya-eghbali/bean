@@ -121,11 +121,11 @@ function lexer(string) {
     const current = tokens[i];
     const next = tokens[i + 1];
     if (current.name == 'atsign') {
-      if (!["_", "_n", "dedent"].includes(next.name)) {
+      if (!["_", "_n", "^", "dedent"].includes(next.name)) {
         tokens = [...tokens.slice(0, i + 1), { name: 'no_space', index: i + 2 }, ...tokens.slice(i++ + 1)];
       }
     } else if (next.name == "lbra") {
-      if (!["_", "_n", "dedent"].includes(current.name)) {        
+      if (!["_", "_n", "^", "dedent"].includes(current.name)) {        
         tokens = [...tokens.slice(0, i + 1), { name: 'no_space', index: i + 2 }, ...tokens.slice(i++ + 1)];
       }
     }
@@ -146,26 +146,7 @@ function lexer(string) {
       if (isCall) {
         // check if it's a function:
         if (tokens[i + 1] && tokens[i + 1].name == "indent") {
-          // find the matching dedent and insert call end there
-          let count = 0;
-          let j = 1;
-          while (true) {
-            let _token = tokens[i + j];
-            if (!_token) {
-              throw `Lexing error at ${i}`;
-            }
-            if (_token.name == "indent") {
-              count++;
-            } else if (_token.name == "dedent") {
-              count--;
-            }
-            if (count == 0) {
-              j++;
-              tokens = [...tokens.slice(0, i+j), { name: '!', index: i + j + 1 }, ...tokens.slice(i++ + j)];
-              break;
-            }
-            j++;
-          }
+          // do nothing
         } else {
           // insert call end token        
           tokens = [...tokens.slice(0, i), { name: '!', index: i + 1 }, ...tokens.slice(i++)];

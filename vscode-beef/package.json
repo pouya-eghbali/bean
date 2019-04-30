@@ -1,0 +1,25 @@
+{
+    "name": "vscode-beef",
+    "displayName": "vscode-beef",
+    "description": "beef highlighting for vscode",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.33.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "beef",
+            "aliases": ["beef", "beef"],
+            "extensions": ["beef"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "beef",
+            "scopeName": "source.beef",
+            "path": "./syntaxes/beef.tmLanguage.json"
+        }]
+    }
+}

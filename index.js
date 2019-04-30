@@ -38,7 +38,7 @@ function bean(model, tokens) {
         while (true) {
             const length = tokens.length;
             if (length == 1) {
-                return tokens;
+                return [true, tokens]
             }
             if (j + 1 > length - 1) {
                 break;
@@ -55,23 +55,11 @@ function bean(model, tokens) {
             j++;
         }
         if (!matched && i + 1 == model.length) {
-            console.log(util.inspect(tokens, { showHidden: false, depth: null }));
-            throw "Ooopsies!"
+            return [false, tokens]
         }
         i = matched ? 0 : i + 1;
     }
 }
 
-// DEBUG
-const util = require("util");
-const fs = require("fs");
-const ClioLexer = require("./clio/lexer.js");
-
-const source = fs.readFileSync("./clio/test.clio", { encoding: "utf8" });
-const clioModel = fs.readFileSync("./clio/clio.beef", { encoding: "utf8" });
-
-const tokens = ClioLexer(source)[1];
-const model = beef(clioModel);
-
-const cst = bean(model, tokens)[0];
-console.log(util.inspect(cst, { showHidden: false, depth: null }));
+exports.bean = bean;
+exports.beef = beef;

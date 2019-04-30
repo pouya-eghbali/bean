@@ -1,0 +1,10 @@
+[-] transforms (Removing this)
+[X] imports
+[X] boolean
+[X] and / or
+[X] -> if
+[-] half comparison (Replacing this)
+[X] cmp with @
+[X] range
+[-] decorators (Removing this)
+[X] clean AST
