@@ -1,4 +1,4 @@
-1 + 2 * 4 -> double
+1 + 2 * 4 -> * double
           -> console.log arg 2
 
 1 + 2 * 4 -> double

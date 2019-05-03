@@ -10,77 +10,77 @@ op_start number|math|symbol => math {left: left.left, op: left.right.raw, right}
 symbol dot => property_access
 property_access symbol => symbol {raw: `${left.left.raw}.${right.raw}`}
 
-cmpexpr_end|number|symbol|at_ref|atsign comparison => cmpexpr_start
-cmpexpr_start number|symbol|cmpexpr_end|at_ref|atsign => cmpexpr_end {left: left.left, op: left.right.raw, right}
+comparison|number|symbol|at_ref|atsign cmp => cmpexpr_start
+cmpexpr_start number|symbol|comparison|at_ref|atsign => comparison {left: left.left, op: left.right.raw, right}
 
 atsign no_space => at_ref_start
 at_ref_start number => at_ref {index: right}
 
-no_space list_end => slicer_start
-symbol slicer_start => slicer {data: left, slicer: right}
+no_space list => slicer_start
+symbol slicer_start => slicer {data: left, slicer: right.right}
 
 set symbol => set_var
-set_var ! => set_var {left}
+set_var ! => set_var {var_name: left.right}
 
 lbra number|symbol|math => list_start {items: [right]}
 list_start number|symbol|math => list_start {items: [...left.items, right]}
-list_start rbra => list_end {items: left.items}
+list_start rbra => list {items: left.items}
 
 list_start colon => range_start {start: left.items[0]}
 range_start number|symbol|math => range_mid {start: left.start, end: right}
 range_mid|range_start colon => range_step_start {start: left.start, end: left.end}
-range_step_start number|symbol|math => range_step_end {start: left.start, end: left.end, step: right}
-range_mid|range_start|range_step_end rbra => range_end {start: left.start, end: left.end, step: left.step}
+range_step_start number|symbol|math => range_step {start: left.start, end: left.end, step: right}
+range_mid|range_start|range_step rbra => range {start: left.start, end: left.end, step: left.step}
 
-math|number|symbol|list_end|dictionary|slicer call_end|set_var|method_call_end => flow {data: left, calls: [right]}
-flow call_end|set_var => flow {data: left.data, calls: [...left.calls, right]}
+math|number|symbol|list|dictionary|slicer call|set_var|method_call => flow {data: left, calls: [right]}
+flow call|set_var => flow {data: left.data, calls: [...left.calls, right]}
 
-if symbol|cmpexpr_end|logical|bool => if_start {left: right}
-if_start colon => if_end {condition: left.left}
-if_end block_end => if_statement {condition: left.condition, body: right}
+if symbol|comparison|logical|bool => if_start {left: right}
+if_start colon => if_def {condition: left.left}
+if_def block => if_statement {condition: left.condition, body: right}
 
-elif symbol|cmpexpr_end|logical|bool => elif_start {left: right}
-elif_start colon => elif_end {condition: left.left}
-elif_end block_end => elif_statement {condition: left.left, body: right}
+elif symbol|comparison|logical|bool => elif_start {left: right}
+elif_start colon => elif_def {condition: left.left}
+elif_def block => elif_statement {condition: left.condition, body: right}
 
-else colon => else_end
-else_end block_end => else_statement {body: right}
+else colon => else_def
+else_def block => else_statement {body: right}
 
 if_statement elif_statement => if_elif_statement {if: left, elifs: [right]}
 if_elif_statement elif_statement => if_elif_statement {if: left.if, elifs: [...left.elifs, right]}
 if_elif_statement else_statement => if_elif_else_statement {if: left.if, elifs: left.elifs, else: right}
 if_statement else_statement => if_else_statement {if: left, else: right}
 
-fn symbol => function_start {name: right, args: []}
-function_start symbol => function_start {name: left.name, args: [...left.args, right]}
-function_start colon => function_def {name: left.name, args: left.args}
-function_def block_end|math|symbol|cmpexpr_end => function_end {name: left.name, args: left.args, body: right}
+fn symbol => function_start {fname: right, args: []}
+function_start symbol => function_start {fname: left.fname, args: [...left.args, right]}
+function_start colon => function_def {fname: left.fname, args: left.args}
+function_def block|math|symbol|comparison => function {fname: left.fname, args: left.args, body: right}
 
 symbol colon => quick_function_start {args: [left]}
 symbol quick_function_start => quick_function_start {args: [...right.args, left]}
-quick_function_start block_end => quick_function {args: left.args, body: right}
-quick_function_start math|symbol|cmpexpr_end => one_line_quick_function {args: left.args, body: right}
+quick_function_start block => quick_function {args: left.args, body: right}
+quick_function_start math|symbol|comparison => one_line_quick_function {args: left.args, body: right}
 
-lcbr|dict_val symbol|word|string|number => dict_key {key: right, content: left.content || []}
-dict_key symbol|word|string|number => dict_val {content: [...left.content, [left.key, right]]}
-dict_val rcbr => dictionary {content: left.content}
+lcbr|dict_val symbol|word|string|number => dict_key {key: right, items: left.items || []}
+dict_key symbol|word|string|number => dict_val {items: [...left.items, [left.key, right]]}
+dict_val rcbr => dictionary {items: left.items}
 
-lpar math|one_line_quick_function|list_end|dictionary|cmpexpr_end => wrapped_expr_start {content: right}
+lpar math|one_line_quick_function|list|dictionary|comparison => wrapped_expr_start {content: right}
 wrapped_expr_start rpar => wrapped_expr {content: left.content}
 
 map symbol|one_line_quick_function => function_call {function: right, isMap: true, args: []}
 pipe symbol|one_line_quick_function => function_call {function: right, args: []}
-function_call|function_call_with_args at_ref|symbol|number|wrapped_expr|list_end => function_call_with_args {isMap: left.isMap, function: left.function, args: [...left.args, right]}
-function_call|function_call_with_args ! => call_end {isMap: left.isMap, function: left.function, args: left.args}
+function_call|function_call_with_args at_ref|symbol|number|wrapped_expr|list => function_call_with_args {isMap: left.isMap, function: left.function, args: [...left.args, right]}
+function_call|function_call_with_args ! => call {isMap: left.isMap, function: left.function, args: left.args}
 
 map dot => method_call_start {left: right, isMap: true}
 pipe dot => method_call_start {left: right}
-method_call_start symbol|property_access => method_call {isMap: left.isMap, function: `data.${right.raw}`, args: []}
-method_call|method_call_with_args at_ref|symbol|number|wrapped_expr|list_end => method_call_with_args {isMap: left.isMap, function: left.function, args: [...left.args, right]}
-method_call|method_call_with_args ! => method_call_end {isMap: left.isMap, function: left.function, args: left.args}
+method_call_start symbol|property_access => method_call_mid {isMap: left.isMap, function: `.${right.raw}`, args: []}
+method_call_mid|method_call_with_args at_ref|symbol|number|wrapped_expr|list => method_call_with_args {isMap: left.isMap, function: left.function, args: [...left.args, right]}
+method_call_mid|method_call_with_args ! => method_call {isMap: left.isMap, function: left.function, args: left.args}
 
-map quick_function|function_end => call_end {function: right, isMap: true}
-pipe quick_function|function_end => call_end {function: right}
+map quick_function|function => call {function: right, isMap: true}
+pipe quick_function|function => call {function: right}
 
 import symbol|path|url => import_statement {imports: [right]}
 import_statement symbol|path|url => import_statement {imports: [...left.imports, right]}
@@ -94,17 +94,17 @@ logical_start bool|number|symbol|logical|bool => logical {left: left.left, op: l
 
 indent flow|symbol|math => block_start {content: [right]}
 block_start flow|symbol|math => block_start {content: [...left.content, right]}
-block_start dedent => block_end {content: left.content}
+block_start dedent => block {content: left.content}
 
-map if_statement|if_elif_statement|if_else_statement|if_elif_else_statement => call_end {function: right, isMap: true, isCond: true}
-pipe if_statement|if_elif_statement|if_else_statement|if_elif_else_statement => call_end {function: right, isCond: true}
+map if_statement|if_elif_statement|if_else_statement|if_elif_else_statement => call {function: right, isMap: true, isCond: true}
+pipe if_statement|if_elif_statement|if_else_statement|if_elif_else_statement => call {function: right, isCond: true}
 
-flow|function_end|if_else_statement|if_elif_statement eof => clio {program: [left]}
-if_elif_else_statement|if_statement eof => clio {program: [left]}
-import_statement|import_as_statement|import_from_statement eof => clio {program: [left]}
-logical|range_end eof => clio {program: [left]}
+flow|function|if_else_statement|if_elif_statement eof => main {program: [left]}
+if_elif_else_statement|if_statement eof => main {program: [left]}
+import_statement|import_as_statement|import_from_statement eof => main {program: [left]}
+logical|range eof => main {program: [left]}
 
-flow|function_end|if_else_statement|if_elif_statement clio => clio {program: [left, ...right.program]}
-if_elif_else_statement|if_statement clio => clio {program: [left, ...right.program]}
-import_statement|import_as_statement|import_from_statement clio => clio {program: [left, ...right.program]}
-logical|range_end clio => clio {program: [left, ...right.program]}
+flow|function|if_else_statement|if_elif_statement main => main {program: [left, ...right.program]}
+if_elif_else_statement|if_statement main => main {program: [left, ...right.program]}
+import_statement|import_as_statement|import_from_statement main => main {program: [left, ...right.program]}
+logical|range main => main {program: [left, ...right.program]}

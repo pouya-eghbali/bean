@@ -14,9 +14,13 @@ const parseResults = bean(model, tokens);
 if (parseResults[0]) {
     const cst = parseResults[1][0];
     console.log(util.inspect(cst, { showHidden: false, depth: null }));
+    const walk = require("./generator");
+    var beautify = require('js-beautify').js;
+    console.log(beautify(walk(cst)));
 } else {
     // we need to write our parsing error function here
 }
+
 
 /*
 var myvar;

@@ -31,7 +31,7 @@ const patterns = {
 
     filt: /^\|/,
 
-    comparison: /^(!=|>=|<=|>|<|=)/,
+    cmp: /^(!=|>=|<=|>|<|=)/,
 
     dsop: /^[\^]/,
     sop: /^[*/]/,
