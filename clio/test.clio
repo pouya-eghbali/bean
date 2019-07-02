@@ -1,58 +1,9 @@
-1 + 2 * 4 -> * double
-          -> console.log arg 2
+fn hello person = #Pouya
+         location = #Lausanne
+         *kitties:
+    
+    print #Hello person #from location
+    ', ' -> join kitties -> print 'Your kitties are:' @
+    print!
 
-1 + 2 * 4 -> double
-          -> console.log arg 2
-
-if a:
-    b
-    1 -> double
-elif b >= 10 > 2:
-    c
-else:
-    hehe
-
-fn test a b:
-    a -> b
-
-[1 2 3] -> * test
-
-{
-     a b
-    #c d
-} => json
-
-a -> fn double b:
-    b * 2
-
-[1 2 3 4] -> filter (a: a > 2) -> n: n ^ 2 -> test @2
-
-a -> .b
-a -> .b.c
-a -> a.b.c
-
-abc[1] -> * print
-
-import abc
-import a b c
-import a b c as alpha
-import a b c as alpha from alphabet
-import a b c from alphabet
-import a b c from ./alphabet
-import a b c from ../english/alphabet
-
-a and b and c
-a and b or c
-
-true and false
-false or true
-
-abc -> if b:
-    testing
-else:
-    heh
-
-[0:]
-[0:100]
-[0:100:2]
-[0::2]
+hello! kitties = [#Mokitty, #Chikitty, #Honey]

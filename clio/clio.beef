@@ -7,6 +7,12 @@ sop_start number|math|symbol => math {left: left.left, op: left.right.raw, right
 number|math|symbol op => op_start
 op_start number|math|symbol => math {left: left.left, op: left.right.raw, right}
 
+dot dot => double_dot
+double_dot dot => triple_dot
+
+double_dot symbol => args {raw: `${right.raw}`}
+triple_dot symbol => kwargs {raw: `${right.raw}`}
+
 symbol dot => property_access
 property_access symbol => symbol {raw: `${left.left.raw}.${right.raw}`}
 
@@ -52,7 +58,7 @@ if_elif_statement else_statement => if_elif_else_statement {if: left.if, elifs: 
 if_statement else_statement => if_else_statement {if: left, else: right}
 
 fn symbol => function_start {fname: right, args: []}
-function_start symbol => function_start {fname: left.fname, args: [...left.args, right]}
+function_start symbol|args|kwargs => function_start {fname: left.fname, args: [...left.args, right]}
 function_start colon => function_def {fname: left.fname, args: left.args}
 function_def block|math|symbol|comparison => function {fname: left.fname, args: left.args, body: right}
 

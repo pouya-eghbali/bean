@@ -19,6 +19,8 @@ if (parseResults[0]) {
     console.log(beautify(walk(cst)));
 } else {
     // we need to write our parsing error function here
+    console.log(parseResults);
+    
 }
 
 

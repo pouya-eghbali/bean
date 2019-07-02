@@ -5,11 +5,9 @@ const Rules = {
     flow: tree => {
         let data = walk(tree.data);        
         let calls = tree.calls.map(walk);
-        let vars = [];
         calls = calls.map(call => {
             if (call.variable) {
-                vars.push(call.variable);
-                return `${call.variable} = ClioFlowData`
+                return `const ${call.variable} = Object.freeze(ClioFlowData)`
             }
             if (call.func.startsWith(".")) {
                 call.func = `ClioFlowData${call.func}`
@@ -80,19 +78,19 @@ const Rules = {
     if_statement: tree => {
         let condition = walk(tree.condition);
         let body = walk(tree.body);
-        return `if (${condition}) ${body}`;
+        return `if (${condition}) {${body}}`;
     },
     elif_statement: tree => {        
         let condition = walk(tree.condition);
         let body = walk(tree.body);
-        return `else if (${condition}) ${body}`;
+        return `else if (${condition}) {${body}}`;
     },
     else_statement: tree => {
         let body = walk(tree.body);
-        return `else ${body}`
+        return `else {${body}}`
     },
     block: tree => {
-        return `{${tree.content.map(walk).join(";\n")}}`
+        return `${tree.content.map(walk).join(";\n")}`
     },
     comparison: tree => {
         if (tree.op == '=') {
@@ -104,7 +102,10 @@ const Rules = {
         let name = walk(tree.fname);
         let args = tree.args.map(walk).join(", ");
         let body = walk(tree.body);        
-        return `function ${name} (${args}) ${body}`;
+        return `function ${name} () {
+            ${args}
+            ${body}
+        }`;
     },
     list: tree => {
         return `[${tree.items.map(walk).join(", ")}]`
@@ -136,7 +137,7 @@ const Rules = {
     slicer: tree => {
         let data = walk(tree.data);
         let slicer = walk(tree.slicer);
-        return `slice(data, slicer)`;
+        return `slice(${data}, ${slicer})`;
     },
     import_statement: tree => {
         return tree.imports.map(i => `require("${i.raw}")`).join(";\n") + ";";

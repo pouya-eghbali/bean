@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/pouya-eghbali/bean/issues"
   },
-  "homepage": "https://github.com/pouya-eghbali/bean#readme"
+  "homepage": "https://github.com/pouya-eghbali/bean#readme",
+  "dependencies": {
+    "js-beautify": "^1.10.0"
+  }
 }
