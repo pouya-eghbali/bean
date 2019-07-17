@@ -8,6 +8,7 @@ const source = fs.readFileSync("./test.clio", { encoding: "utf8" });
 const clioModel = fs.readFileSync("./clio.beef", { encoding: "utf8" });
 
 const tokens = ClioLexer(source)[1];
+console.log(util.inspect(tokens, { showHidden: false, depth: null }))
 const model = beef(clioModel);
 
 const parseResults = bean(model, tokens);

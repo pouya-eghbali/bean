@@ -44,7 +44,7 @@ function lexer(string) {
                 tokens.push({
                   name: "dedent",
                   index: i + 1,
-                  raw: "-$"
+                  raw: ""
                 });
                 indents.pop();
               }
@@ -68,7 +68,7 @@ function lexer(string) {
                 tokens.push({
                   name: "indent",
                   index: i + 1,
-                  raw: "+$"
+                  raw: ""
                 });
                 indents.push(_i);
               }
@@ -86,7 +86,7 @@ function lexer(string) {
                 tokens.push({
                   name: "dedent",
                   index: i + 1,
-                  raw: "-$"
+                  raw: ""
                 });
                 indents.pop();
               }
@@ -94,7 +94,7 @@ function lexer(string) {
             tokens.push({
               name: "^",
               index: i + 1,
-              raw: "^"
+              raw: ""
             });
           }
           i += match[0].length;
@@ -125,19 +125,19 @@ function lexer(string) {
         tokens = [...tokens.slice(0, i + 1), { name: 'no_space', index: i + 2 }, ...tokens.slice(i++ + 1)];
       }
     } else if (next.name == "lbra") {
-      if (!["_", "_n", "^", "dedent"].includes(current.name)) {        
+      if (!["_", "_n", "^", "dedent", "unpack"].includes(current.name)) {        
         tokens = [...tokens.slice(0, i + 1), { name: 'no_space', index: i + 2 }, ...tokens.slice(i++ + 1)];
       }
     }
   }
-  tokens = tokens.filter(token => token.name != "_");
+  //tokens = tokens.filter(token => token.name != "_");
   let isCall = false;
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i];
     if (['map', 'pipe', 'set'].includes(token.name)) {
       if (isCall) {
         // insert call end token
-        tokens = [...tokens.slice(0, i), {name: '!', index: i+1}, ...tokens.slice(i++)];
+        tokens = [...tokens.slice(0, i), {name: 'ender', index: i+1}, ...tokens.slice(i++)];
         //isCall = false;
       } else {
         isCall = true;
@@ -148,14 +148,35 @@ function lexer(string) {
         if (tokens[i + 1] && tokens[i + 1].name == "indent") {
           // do nothing
         } else {
-          // insert call end token        
-          tokens = [...tokens.slice(0, i), { name: '!', index: i + 1 }, ...tokens.slice(i++)];
+          // insert call end token (if next token isn't whitespace)
+          if (tokens[i+1] && !['_', '^', '_n'].includes(tokens[i+1].name)) {            
+            tokens = [...tokens.slice(0, i), { name: 'ender', index: i + 1 }, ...tokens.slice(i++)];
+            isCall = false;
+          } else {
+            let j = i + 1
+            while (tokens[++j] && tokens[j].name != '_') {}
+            if (tokens[j]) {
+              const whites = tokens[j].raw.length
+              let indent = 0
+              j = i + 1
+              while (j-- && !['map', 'pipe', 'set'].includes(tokens[j].name)) {}
+              while (j-- && tokens[j].name != '_n') {
+                indent += tokens[j].raw.length
+              }
+              if (whites <= indent) {
+                tokens = [...tokens.slice(0, i), { name: 'ender', index: i + 1 }, ...tokens.slice(i++)];
+                isCall = false;
+              }
+            } else {
+              tokens = [...tokens.slice(0, i), { name: 'ender', index: i + 1 }, ...tokens.slice(i++)];
+              isCall = false;
+            }
+          }
         }
-        isCall = false;
       }
     }
   }
-  tokens = tokens.filter(token => !["_n", "^"].includes(token.name));
+  tokens = tokens.filter(token => !["_n", "^", "_"].includes(token.name));
   tokens.push({
     name: "eof",
     index: string.length,

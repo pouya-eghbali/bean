@@ -7,11 +7,12 @@ sop_start number|math|symbol => math {left: left.left, op: left.right.raw, right
 number|math|symbol op => op_start
 op_start number|math|symbol => math {left: left.left, op: left.right.raw, right}
 
-dot dot => double_dot
-double_dot dot => triple_dot
+unpack unpack => double_unpack
+unpack symbol|atsign => symbol_unpack {symbol: right}
+double_unpack symbol|atsign => symbol_unpack {symbol: right, keywordUnpack: true}
 
-double_dot symbol => args {raw: `${right.raw}`}
-triple_dot symbol => kwargs {raw: `${right.raw}`}
+unpack list|dictionary|range => iter_unpack {iter: right}
+double_unpack list|dictionary|range => iter_unpack {iter: right, keywordUnpack: true}
 
 symbol dot => property_access
 property_access symbol => symbol {raw: `${left.left.raw}.${right.raw}`}
@@ -20,13 +21,16 @@ comparison|number|symbol|at_ref|atsign cmp => cmpexpr_start
 cmpexpr_start number|symbol|comparison|at_ref|atsign => comparison {left: left.left, op: left.right.raw, right}
 
 atsign no_space => at_ref_start
-at_ref_start number => at_ref {index: right}
+at_ref_start list => at_ref {index: right}
 
 no_space list => slicer_start
 symbol slicer_start => slicer {data: left, slicer: right.right}
 
-set symbol => set_var
-set_var ! => set_var {var_name: left.right}
+set symbol => set_var_flow_start
+set_var_flow_start ender => set_var_flow {var_name: left.right, type: 'flow'}
+
+symbol eq => set_var_eq_start
+set_var_eq_start symbol|list|string|number|word => set_var_eq {var_name: left.left, value: right}
 
 lbra number|symbol|math => list_start {items: [right]}
 list_start number|symbol|math => list_start {items: [...left.items, right]}
@@ -38,8 +42,9 @@ range_mid|range_start colon => range_step_start {start: left.start, end: left.en
 range_step_start number|symbol|math => range_step {start: left.start, end: left.end, step: right}
 range_mid|range_start|range_step rbra => range {start: left.start, end: left.end, step: left.step}
 
-math|number|symbol|list|dictionary|slicer call|set_var|method_call => flow {data: left, calls: [right]}
-flow call|set_var => flow {data: left.data, calls: [...left.calls, right]}
+math|number|symbol|list|dictionary|slicer|string|word call|set_var_flow|method_call => flow {data: [left], calls: [right]}
+math|number|symbol|list|dictionary|slicer|string|word flow => flow {data: [left, ...right.data], calls: right.calls}
+flow call|set_var_flow => flow {data: left.data, calls: [...left.calls, right]}
 
 if symbol|comparison|logical|bool => if_start {left: right}
 if_start colon => if_def {condition: left.left}
@@ -58,7 +63,7 @@ if_elif_statement else_statement => if_elif_else_statement {if: left.if, elifs: 
 if_statement else_statement => if_else_statement {if: left, else: right}
 
 fn symbol => function_start {fname: right, args: []}
-function_start symbol|args|kwargs => function_start {fname: left.fname, args: [...left.args, right]}
+function_start symbol|symbol_unpack|set_var_eq => function_start {fname: left.fname, args: [...left.args, right]}
 function_start colon => function_def {fname: left.fname, args: left.args}
 function_def block|math|symbol|comparison => function {fname: left.fname, args: left.args, body: right}
 
@@ -76,14 +81,15 @@ wrapped_expr_start rpar => wrapped_expr {content: left.content}
 
 map symbol|one_line_quick_function => function_call {function: right, isMap: true, args: []}
 pipe symbol|one_line_quick_function => function_call {function: right, args: []}
-function_call|function_call_with_args at_ref|symbol|number|wrapped_expr|list => function_call_with_args {isMap: left.isMap, function: left.function, args: [...left.args, right]}
-function_call|function_call_with_args ! => call {isMap: left.isMap, function: left.function, args: left.args}
+function_call exclamation => function_call {...left, forceExecute: true}
+function_call|function_call_with_args word|string|at_ref|symbol|number|wrapped_expr|list|symbol_unpack|iter_unpack => function_call_with_args {isMap: left.isMap, function: left.function, args: [...left.args, right]}
+function_call|function_call_with_args ender => call {isMap: left.isMap, function: left.function, args: left.args}
 
 map dot => method_call_start {left: right, isMap: true}
 pipe dot => method_call_start {left: right}
 method_call_start symbol|property_access => method_call_mid {isMap: left.isMap, function: `.${right.raw}`, args: []}
 method_call_mid|method_call_with_args at_ref|symbol|number|wrapped_expr|list => method_call_with_args {isMap: left.isMap, function: left.function, args: [...left.args, right]}
-method_call_mid|method_call_with_args ! => method_call {isMap: left.isMap, function: left.function, args: left.args}
+method_call_mid|method_call_with_args ender => method_call {isMap: left.isMap, function: left.function, args: left.args}
 
 map quick_function|function => call {function: right, isMap: true}
 pipe quick_function|function => call {function: right}

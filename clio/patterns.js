@@ -16,10 +16,13 @@ const patterns = {
     of: /^of(?![a-zA-Z_-])/,
     as: /^as(?![a-zA-Z_-])/,
 
+    exclamation: /^!/,
+    unpack: /^~/,
+
     import: /^import(?![a-zA-Z_-])/,
     from: /^from(?![a-zA-Z_-])/,
     url: /^(http|ws)s?:\/\/[^ \r\n]+/,
-    path: /^(((((\.\.|[-_.a-zA-Z0-9]+)\/)+|\.\/)[-_.a-zA-Z0-9]+(\.(js|clio))?)|([-_.a-zA-Z0-9]\.(js|clio)))/,
+    path: /^([.]{1,2})?(\/[a-zA-Z0-9.]+)+(\.clio)?/,
 
     comment: /^ *--[^\r\n]+/,
 
@@ -28,10 +31,11 @@ const patterns = {
     map: /^-> *\*/,
     pipe: /^->/,
     set: /^=>/,
+    eq: /^=/,
 
     filt: /^\|/,
 
-    cmp: /^(!=|>=|<=|>|<|=)/,
+    cmp: /^(!=|>=|<=|>|<|==)/,
 
     dsop: /^[\^]/,
     sop: /^[*/]/,

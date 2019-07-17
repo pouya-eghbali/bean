@@ -133,13 +133,9 @@ class Fn {
     }
     call(args, kwargs) {
         const inner = this.parser.parse(args, kwargs)
+        inner.__data = args.length ? args[0] : kwargs
         const scope = new Scope(inner, this.outer)
         return new Lazy(fn, scope)
-    }
-    get js() {
-        return function(...args) {
-            this.call(args)
-        }
     }
 }
 
@@ -159,6 +155,26 @@ class Lazy {
     }
 }
 
+
+/*
+
+    Clio debugger (runtime exception handling)
+
+*/
+
+class Debug {
+    constructor(lazy, location) {
+        this.location = location;
+        this.lazy = lazy
+    }
+    value() {
+        try {
+            return this.lazy.value()
+        } catch (error) {
+            throw `Exception at ${this.location}:\n\n${error}`
+        }
+    }
+}
 
 /* tests */
 
