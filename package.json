@@ -1,6 +1,6 @@
 {
   "name": "bean-parser",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Bean Parser",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,4 @@
     "url": "https://github.com/pouya-eghbali/bean/issues"
   },
   "homepage": "https://github.com/pouya-eghbali/bean#readme",
-  "dependencies": {
-    "js-beautify": "^1.10.0"
-  }
 }
