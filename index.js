@@ -10,7 +10,7 @@ function beef(string, helpers) {
     let name = match[3];
     let make = match[5];
     make = make ?
-      (helpers => Function('left', 'right', `let result = ${make}; result.name = "${name}"; return result;`))(helpers) :
+      (left, right) => Function('helpers', 'name', 'left', 'right', `return { name, ...${make}}`)(helpers, name, left, right) :
       (left, right) => { return { name, left, right } }
     lefts.forEach(left => {
       rights.forEach(right => {
