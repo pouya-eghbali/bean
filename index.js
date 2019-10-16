@@ -10,11 +10,9 @@ function beef(string) {
     let name = match[3];
     let make = match[5];
     if (make) {
-      make = eval(`(left, right) => {
-                let result = ${make};
-                result.name = "${name}";
-                return result;
-            }`)
+      make = Function(
+        'left', 'right',
+        `let result = ${make}; result.name = "${name}"; return result;`)
     }
     lefts.forEach(left => {
       rights.forEach(right => {
