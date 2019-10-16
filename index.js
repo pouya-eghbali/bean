@@ -1,20 +1,22 @@
 // TODO: write beef in beef/bean
 function beef(string, helpers) {
   string = string.split('\n').filter(line => !line.startsWith('//')).join('\n')
-  let rules = string.match(/(.+?) +(.+?) +=> +(.+?)(( +({(.|\n)*?})($|\n))|\n|$)/g);
-  let model = [];
+  const rules = string.match(/(.+?) +(.+?) +=> +(.+?)(( +({(.|\n)*?})($|\n))|\n|$)/g);
+  const model = [];
   rules.forEach(rule => {
-    let match = rule.match(/(.+?) +(.+?) +=> +(.+?)(( +({(.|\n)*?})($|\n))|\n|$)/);
-    let lefts = match[1].split("|");
-    let rights = match[2].split("|");
-    let name = match[3];
-    let make = match[5];
-    make = make ?
-      (left, right) => Function('helpers', 'name', 'left', 'right', `return { name, ...${make}}`)(helpers, name, left, right) :
+    const match = rule.match(/(.+?) +(.+?) +=> +(.+?)(( +({(.|\n)*?})($|\n))|\n|$)/);
+    const lefts = match[1].split("|");
+    const rights = match[2].split("|");
+    const name = match[3];
+    const make = match[5];
+    const body = `return { name, ...${make}}`
+    const args = ['helpers', 'name', 'left', 'right']
+    const makeFn = make ?
+      (left, right) => Function(...args, body)(helpers, name, left, right) :
       (left, right) => { return { name, left, right } }
     lefts.forEach(left => {
       rights.forEach(right => {
-        model.push({ left, right, make })
+        model.push({ left, right, make: makeFn })
       })
     })
   });
