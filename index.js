@@ -1,5 +1,5 @@
 // TODO: write beef in beef/bean
-function beef(string, scope) {
+function beef(string, helpers) {
   string = string.split('\n').filter(line => !line.startsWith('//')).join('\n')
   let rules = string.match(/(.+?) +(.+?) +=> +(.+?)(( +({(.|\n)*?})($|\n))|\n|$)/g);
   let model = [];
@@ -10,8 +10,8 @@ function beef(string, scope) {
     let name = match[3];
     let make = match[5];
     make = make ?
-      Function('left', 'right', `let result = ${make}; result.name = "${name}"; return result;`).bind(scope) :
-      make = (left, right) => { return { name, left, right } }
+      (helpers => Function('left', 'right', `let result = ${make}; result.name = "${name}"; return result;`))(helpers) :
+      (left, right) => { return { name, left, right } }
     lefts.forEach(left => {
       rights.forEach(right => {
         model.push({ left, right, make })
