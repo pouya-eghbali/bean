@@ -10,6 +10,10 @@ cd clio
 node parser.js
 ```
 
+## Optional performance gain
+
+Instead of passing an array of tokens with O(N) methods to `bean` you can pass a deque (like `denque`) which has O(1) operations.
+
 ## How does this work?
 
 Bean grammars (are written in beef language and) have a binary like format (the name bean comes from here). Each grammar has a left and a right, if `.name` of two consecutive tokens (lexing result) matches `.name` of the left and right rules, then it's a match.
