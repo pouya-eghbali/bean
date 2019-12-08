@@ -24,26 +24,24 @@ function beef(string, helpers) {
 }
 
 function bean(model, tokens) {
-  let processList = []
   while (true) {
     let match = false
-    const processIter = processList.length - 1
+    const iter = tokens.length - 1
     modelLoop: for (const { left, right, make } of model) {
-      for (let index = 0; index < processIter; index++) {
-        const leftNode = processList[index]
+      for (let index = 0; index < iter; index++) {
+        const leftNode = tokens[index]
         if (leftNode.name != left) continue
-        const rightNode = processList[index + 1]
+        const rightNode = tokens[index + 1]
         if (!rightNode || rightNode.name != right) continue
         match = true
-        processList.splice(index + 1, 1)
-        processList[index] = make(leftNode, rightNode)
+        tokens.splice(index + 1, 1)
+        tokens[index] = make(leftNode, rightNode)
         break modelLoop
       }
     }
-    if (!match && tokens.length) processList.push(tokens.shift())
-    else if (!match) break
+    if (!match) break
   }
-  return [processList.length == 1, processList]
+  return [tokens.length == 1, tokens]
 }
 
 exports.bean = bean;

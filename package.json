@@ -1,6 +1,6 @@
 {
   "name": "bean-parser",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Bean Parser",
   "main": "index.js",
   "scripts": {
