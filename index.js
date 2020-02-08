@@ -7,17 +7,20 @@ function beef(string, helpers) {
   const rules = string.match(
     /(.+?) +(.+?) +=> +(.+?)(( +({(.|\n)*?})($|\n))|\n|$)/g
   );
-  const aliases = string
-    .match(/alias (.+?) (.+)\n/g)
-    .reduce((aliases, match) => {
-      const [_, name, values] = match.split(" ");
+  const aliases = (string.match(/alias (.+?) (.+)\n/g) || []).reduce(
+    (aliases, match) => {
+      const [_, name, values] = match.trim().split(" ");
       aliases[name] = values.split("|");
       return aliases;
-    }, {});
+    },
+    {}
+  );
   const resolve = names => {
     const result = [];
+    let modified = false;
     for (const name of names) {
       if (name in aliases) {
+        modified = true;
         for (const alias of aliases[name]) {
           result.push(alias);
         }
@@ -25,7 +28,7 @@ function beef(string, helpers) {
         result.push(name);
       }
     }
-    return result;
+    return modified ? resolve(result) : result;
   };
   const model = [];
   rules.forEach(rule => {
