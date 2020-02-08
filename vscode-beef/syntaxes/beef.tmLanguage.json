@@ -24,7 +24,7 @@
       "patterns": [
         {
           "name": "keyword.other.beef",
-          "match": "(=>|[|])"
+          "match": "(=>|[|]|alias)"
         }
       ]
     }
