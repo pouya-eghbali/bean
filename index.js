@@ -1,80 +1,139 @@
-// TODO: write beef in beef/bean
-function beef(string, helpers) {
-  string = string
-    .split("\n")
-    .filter(line => !line.startsWith("//"))
-    .join("\n");
-  const rules = string.match(
-    /(.+?) +(.+?) +=> +(.+?)(( +({(.|\n)*?})($|\n))|\n|$)/g
-  );
-  const aliases = (string.match(/alias (.+?) (.+)\n/g) || []).reduce(
-    (aliases, match) => {
-      const [_, name, values] = match.trim().split(" ");
-      aliases[name] = values.split("|");
-      return aliases;
-    },
-    {}
-  );
-  const resolve = names => {
-    const result = [];
-    let modified = false;
-    for (const name of names) {
-      if (name in aliases) {
-        modified = true;
-        for (const alias of aliases[name]) {
-          result.push(alias);
-        }
-      } else {
-        result.push(name);
-      }
-    }
-    return modified ? resolve(result) : result;
-  };
-  const model = [];
-  rules.forEach(rule => {
-    const match = rule.match(
-      /(.+?) +(.+?) +=> +(.+?)(( +({(.|\n)*?})($|\n))|\n|$)/
-    );
-    const lefts = resolve(match[1].split("|"));
-    const rights = resolve(match[2].split("|"));
-    const name = match[3];
-    const make = match[5];
-    const body = `return { name, ...${make}}`;
-    const args = ["helpers", "name", "left", "right"];
-    const makeFn = make
-      ? (left, right) => Function(...args, body)(helpers, name, left, right)
-      : (left, right) => {
-          return { name, left, right };
-        };
-    lefts.forEach(left => {
-      rights.forEach(right => {
-        model.push({ left, right, make: makeFn });
-      });
-    });
-  });
-  return model;
-}
-
-function bean(model, tokens) {
-  while (true) {
-    let match = false;
-    const iter = tokens.length - 1;
-    modelLoop: for (const { left, right, make } of model) {
-      for (let index = 0; index < iter; index++) {
-        const leftNode = tokens[index];
-        if (leftNode.name != left) continue;
-        const rightNode = tokens[index + 1];
-        if (!rightNode || rightNode.name != right) continue;
-        match = true;
-        tokens.splice(index + 1, 1);
-        tokens[index] = make(leftNode, rightNode);
-        break modelLoop;
-      }
-    }
-    if (!match) break;
+class Node {
+  constructor(item) {
+    this.item = item;
   }
-  return [tokens.length == 1, tokens];
+  setNext(node) {
+    this.next = node;
+    node.prev = this;
+  }
+  unlink() {
+    if (this.next) this.next.prev = this.prev;
+    this.prev.next = this.next;
+  }
 }
 
-exports.bean = bean;
-exports.beef = beef;
+class List {
+  constructor(array) {
+    if (!array.length) return;
+    const [first, ...rest] = array;
+    this.current = new Node(first);
+    this.first = this.current;
+    this.last = this.current;
+    let curr = this.current;
+    for (const item of rest) {
+      const node = new Node(item);
+      curr.setNext(node);
+      curr = node;
+    }
+    this.last = curr;
+  }
+  next() {
+    this.current = this.current.next;
+  }
+  prev() {
+    this.current = this.current.prev;
+  }
+  unlinkNext() {
+    this.current.next.unlink();
+  }
+  push(item) {
+    const node = new Node(item);
+    if (!this.current) {
+      this.current = node;
+      this.last = this.current;
+      this.first = this.current;
+      return;
+    }
+    this.last.setNext(node);
+    this.last = node;
+  }
+}
+
+const beanPriority = (tokens, rules) => {
+  while (true) {
+    const { current } = tokens;
+    const { next } = current;
+    if (!next) break;
+    const { next: last } = next;
+    const rule = rules[current.item.type]?.[next.item.type];
+    if (rule) {
+      if (last) {
+        const nextRule = rules[next.item.type]?.[last.item.type];
+        if (nextRule && nextRule.priority > rule.priority) {
+          tokens.next();
+          continue;
+        }
+      }
+      current.item = rule.value(current.item, next.item);
+      tokens.unlinkNext();
+      tokens.current = current.prev || current;
+      continue;
+    }
+    tokens.current = next;
+  }
+  return tokens;
+};
+
+const beanNoPriority = (tokens, rules) => {
+  while (true) {
+    const { current } = tokens;
+    const { next } = current;
+    if (!next) break;
+    const rule = rules[current.item.type]?.[next.item.type];
+    if (rule) {
+      current.item = rule.value(current.item, next.item);
+      tokens.unlinkNext();
+      tokens.current = current.prev || current;
+      continue;
+    }
+    tokens.current = next;
+  }
+  return tokens;
+};
+
+const bean = (tokens, rules, priorities = true) => {
+  return priorities
+    ? beanPriority(tokens, rules)
+    : beanNoPriority(tokens, rules);
+};
+
+const rule = (value, priority = 1) => ({ value, priority });
+const map = (keys, rule) => Object.fromEntries(keys.map((key) => [key, rule]));
+const mapfn = (keys, fn) => Object.fromEntries(keys.map(fn));
+const pod = (type) =>
+  rule((lhs, rhs) => ({
+    type,
+    lhs,
+    rhs,
+  }));
+
+const list = (arr) => new List(arr);
+const lPluck = (z) => z;
+const rPluck = (_, z) => z;
+const ignore = (...types) => map(types, rule(lPluck));
+const name = (type, priority = 1) =>
+  rule((lhs, rhs) => ({ lhs, rhs, type }), priority);
+
+const merge = (...objects) => {
+  const result = {};
+  for (const object of objects) {
+    for (const [key, value] of Object.entries(object)) {
+      if (result[key]) result[key] = { ...result[key], ...value };
+      else result[key] = value;
+    }
+  }
+  return result;
+};
+
+module.exports.rule = rule;
+module.exports.map = map;
+module.exports.mapfn = mapfn;
+module.exports.pod = pod;
+module.exports.bean = bean;
+module.exports.List = List;
+module.exports.list = list;
+module.exports.lPluck = lPluck;
+module.exports.rPluck = rPluck;
+module.exports.ignore = ignore;
+module.exports.name = name;
+module.exports.merge = merge;
