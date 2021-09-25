@@ -91,7 +91,7 @@ const beanNoPriority = (tokens, rules, context) => {
   return tokens;
 };
 
-const bean = (tokens, rules, context, priorities = true) => {
+const bean = (tokens, rules, priorities = true, context = {}) => {
   return priorities
     ? beanPriority(tokens, rules, context)
     : beanNoPriority(tokens, rules, context);
