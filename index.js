@@ -49,7 +49,7 @@ class List {
   }
 }
 
-const beanPriority = (tokens, rules) => {
+const beanPriority = (tokens, rules, context) => {
   while (true) {
     const { current } = tokens;
     const { next } = current;
@@ -64,7 +64,7 @@ const beanPriority = (tokens, rules) => {
           continue;
         }
       }
-      current.item = rule.value(current.item, next.item);
+      current.item = rule.value(current.item, next.item, context);
       tokens.unlinkNext();
       tokens.current = current.prev || current;
       continue;
@@ -74,14 +74,14 @@ const beanPriority = (tokens, rules) => {
   return tokens;
 };
 
-const beanNoPriority = (tokens, rules) => {
+const beanNoPriority = (tokens, rules, context) => {
   while (true) {
     const { current } = tokens;
     const { next } = current;
     if (!next) break;
     const rule = rules[current.item.type]?.[next.item.type];
     if (rule) {
-      current.item = rule.value(current.item, next.item);
+      current.item = rule.value(current.item, next.item, context);
       tokens.unlinkNext();
       tokens.current = current.prev || current;
       continue;
@@ -91,10 +91,10 @@ const beanNoPriority = (tokens, rules) => {
   return tokens;
 };
 
-const bean = (tokens, rules, priorities = true) => {
+const bean = (tokens, rules, context, priorities = true) => {
   return priorities
-    ? beanPriority(tokens, rules)
-    : beanNoPriority(tokens, rules);
+    ? beanPriority(tokens, rules, context)
+    : beanNoPriority(tokens, rules, context);
 };
 
 const rule = (value, priority = 1) => ({ value, priority });
